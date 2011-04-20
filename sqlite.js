@@ -73,23 +73,21 @@ function SQLite(cfg) {
   }
 
   function buildConditions(conditions) {
-    var results = [], x;
+    var results = [], values = [], x;
 
     if (typeof conditions === 'string') {
       results.push(conditions);
     } else if (typeof conditions === 'number') {
-      results.push("id=" + conditions);
+      results.push("id=?");
+      values.push(conditions);
     } else if (typeof conditions === 'object') {
       for (x in conditions) {
         if (conditions.hasOwnProperty(x)) {
           if (isNumber(x)) {
             results.push(conditions[x]);
           } else {
-            if (isNumber(conditions[x])) {
-              results.push(x + '=' + conditions[x]);
-            } else {
-              results.push(x + '="' + conditions[x] + '"');
-            }
+            results.push(x + '=?');
+            values.push(conditions[x]);
           }
         }
       }
@@ -101,55 +99,56 @@ function SQLite(cfg) {
       results = '';
     }
 
-    return results;
+    return [results, values];
   }
-  
 
   function createTableSQL(name, cols) {
     var query = "CREATE TABLE " + name + "(" + cols + ");";
 
-    return query;
+    return [query, []];
+  }
+
+  function dropTableSQL(name) {
+    var query = "DROP TABLE " + name + ";";
+
+    return [query, []];
   }
 
   function insertSQL(table, map) {
-    var query = "INSERT INTO " + table + " (#k#) VALUES(#v#);", keys = [], values = [], x;
+    var query = "INSERT INTO " + table + " (#k#) VALUES(#v#);", keys = [], holders = [], values = [], x;
 
     for (x in map) {
       if (map.hasOwnProperty(x)) {
         keys.push(x);
-        if (isNumber(map[x])) {
-          values.push(map[x]);
-        } else {
-          values.push('"' + map[x] + '"');
-        }
+        holders.push('?');
+        values.push(map[x]);
       }
     }
 
     query = query.replace("#k#", keys.join(','));
-    query = query.replace("#v#", values.join(','));
+    query = query.replace("#v#", holders.join(','));
 
-    return query;
+    return [query, values];
   }
 
   function updateSQL(table, map, conditions) {
-    var query = "UPDATE " + table + " SET #k##m#", keys = [], matches = '', x;
+    var query = "UPDATE " + table + " SET #k##m#", keys = [], values = [], x;
 
     for (x in map) {
       if (map.hasOwnProperty(x)) {
-        if (isNumber(map[x])) {
-          keys.push(x + '=' + map[x]);
-        } else {
-          keys.push(x + '="' + map[x] + '"');
-        }
+        keys.push(x + '=?');
+        values.push(map[x]);
       }
     }
 
-    matches = buildConditions(conditions);
+    conditions = buildConditions(conditions);
+
+    values = values.concat(conditions[1]);
 
     query = query.replace("#k#", keys.join(','));
-    query = query.replace("#m#", matches);
+    query = query.replace("#m#", conditions[0]);
 
-    return query;
+    return [query, values];
   }
 
   function selectSQL(table, columns, conditions, options) {
@@ -161,40 +160,49 @@ function SQLite(cfg) {
       columns.join(',');
     }
 
-    matches = buildConditions(conditions);
+    conditions = buildConditions(conditions);
 
-    query = query.replace('#col#', columns);
-    query = query.replace('#cond#', matches);
+    query = query.replace("#col#", columns);
+    query = query.replace('#cond#', conditions[0]);
 
-    return query;
+    return [query, conditions[1]];
   }
 
   function destroySQL(table, conditions) {
     var query = 'DELETE FROM ' + table + '#c#;', matches = '';
 
-    matches = buildConditions(conditions);
+    conditions = buildConditions(conditions);
 
-    query = query.replace('#c#', matches);
+    query = query.replace('#c#', conditions[0]);
 
-    return query;
+    return [query, conditions[1]];
   }
 
   return {
     database: db,
-    createTable: function (name, cols, data, error) { 
-      execute(createTableSQL(name, cols), null, data, error);
+    createTable: function (name, cols, data, error) {
+      var sql = createTableSQL(name, cols);
+      execute(sql[0], sql[1], data, error);
+    },
+    dropTable: function (name, data, error) { 
+      var sql = dropTableSQL(name);
+      execute(sql[0], sql[1], data, error);
     },
     insert: function (table, map, data, error) {
-      execute(insertSQL(table, map), null, data, error);
+      var sql = insertSQL(table, map);
+      execute(sql[0], sql[1], data, error);
     },
     update: function (table, map, conditions, data, error) {
-      execute(updateSQL(table, map, conditions), null, data, error);
+      var sql = updateSQL(table, map, conditions);
+      execute(sql[0], sql[1], data, error);
     },
     select: function (table, columns, conditions, options, data, error) {
-      execute(selectSQL(table, columns, conditions, options), null, data, error);
+      var sql = selectSQL(table, columns, conditions, options);
+      execute(sql[0], sql[1], data, error);
     },
     destroy: function (table, conditions, data, error) {
-      execute(destroySQL(table, conditions), null, data, error);
+      var sql = destroySQL(table, conditions);
+      execute(sql[0], sql[1], data, error);
     }
   };
 }

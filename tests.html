@@ -10,18 +10,20 @@
 <script type="text/javascript" charset="utf-8">
 
   function pass(results, query) {
-    console.log('pass - ' + query);
+    var target = document.getElementById('results'), html = target.innerHTML;
+    target.innerHTML = html + 'pass - ' + query + '<br />';
   }
 
   function fail(error, query) {
-    console.log('fail - ' + error.message + ': ' + query);
+    var target = document.getElementById('results'), html = target.innerHTML;
+    target.innerHTML = html + 'fail - ' + error.message + ': ' + query + '<br />';
   }
 
   var db = SQLite({ shortName: 'mydb' + parseInt(Math.random() * 100000), defaultErrorHandler: fail, defaultDataHandler: pass });
 
   db.createTable('people', 'name TEXT, age INTEGER');
 
-  db.insert('people', { name: 'Jeremy', age: 29 });
+  db.insert('people', { name: "Jeremy", age: 29 });
 
   db.update('people', { age: 30 }, { name: 'Jeremy' });
 

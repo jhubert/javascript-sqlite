@@ -10,7 +10,7 @@ db.insert('people', { name: 'Jeremy', age: 29 });
 
 db.update('people', { age: 30 }, { name: 'Jeremy' });
 
-db.select('people', '*', { age: 30 }, function (transaction, results) { var x; for(x=0; x<results.rows.length; x++) { console.log(results.rows.item(x)); } });
+db.select('people', '*', { age: 30 }, function (results) { var x; for(x=0; x<results.rows.length; x++) { console.log(results.rows.item(x)); } });
 
 db.destroy('people', { age: 30 });
 
