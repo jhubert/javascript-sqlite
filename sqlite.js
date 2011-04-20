@@ -14,7 +14,7 @@ function SQLite(cfg) {
     case 'number':
       return true;
     case 'string':
-      return /^\d+$/.test(val);
+      return (/^\d+$/).test(val);
     case 'object':
       return false;
     }
