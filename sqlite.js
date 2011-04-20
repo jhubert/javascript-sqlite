@@ -152,7 +152,7 @@ function SQLite(cfg) {
   }
 
   function selectSQL(table, columns, conditions, options) {
-    var query = 'SELECT #col# FROM ' + table + '#cond#;', matches = '';
+    var query = 'SELECT #col# FROM ' + table + '#cond#', values = [];
 
     if (typeof columns === 'undefined') {
       columns = '*';
@@ -162,10 +162,29 @@ function SQLite(cfg) {
 
     conditions = buildConditions(conditions);
 
+    values = values.concat(conditions[1]);
+
     query = query.replace("#col#", columns);
     query = query.replace('#cond#', conditions[0]);
 
-    return [query, conditions[1]];
+    if (options) {
+      if (options.limit) {
+        query = query + ' LIMIT ?';
+        values.push(options.limit);
+      }
+      if (options.order) {
+        query = query + ' ORDER BY ?';
+        values.push(options.order);
+      }
+      if (options.offset) {
+        query = query + ' OFFSET ?';
+        values.push(options.offset);
+      }
+    }
+
+    query = query + ';'
+
+    return [query, values];
   }
 
   function destroySQL(table, conditions) {

@@ -24,10 +24,13 @@
   db.createTable('people', 'name TEXT, age INTEGER');
 
   db.insert('people', { name: "Jeremy", age: 29 });
+  db.insert('people', { name: "Tara", age: 28 });
 
   db.update('people', { age: 30 }, { name: 'Jeremy' });
 
-  db.select('people', '*', { age: 30 }, function (results) { var x; for(x=0; x<results.rows.length; x++) { console.log(results.rows.item(x)); } });
+  db.select('people', '*', { age: 30 }, null, function (r, q) { pass(r, q); var x; for(x=0; x<r.rows.length; x++) { console.log(r.rows.item(x)); } });
+  db.select('people', 'name', null, { order: 'age DESC' }, function (r, q) { pass(r, q); var x; for(x=0; x<r.rows.length; x++) { console.log(r.rows.item(x)); } });
+  db.select('people', 'name', null, { limit: 1 }, function (r, q) { pass(r, q); var x; for(x=0; x<r.rows.length; x++) { console.log(r.rows.item(x)); } });
 
   db.destroy('people', { age: 30 });
 </script>
