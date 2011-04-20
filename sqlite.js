@@ -182,13 +182,13 @@ function SQLite(cfg) {
       }
     }
 
-    query = query + ';'
+    query = query + ';';
 
     return [query, values];
   }
 
   function destroySQL(table, conditions) {
-    var query = 'DELETE FROM ' + table + '#c#;', matches = '';
+    var query = 'DELETE FROM ' + table + '#c#;';
 
     conditions = buildConditions(conditions);
 
