@@ -146,7 +146,32 @@ function SQLite(cfg) {
       query = query.replace('#col#', columns);
       query = query.replace('#cond#', matches);
 
-      console.log(query);
+      execute(query, null, data, error);
+    },
+    destroy: function (table, conditions, data, error) {
+      var query = 'DELETE FROM ' + table + '#c#;', matches = [], x;
+
+      if (typeof conditions === 'string') {
+        matches.push(conditions);
+      } else if (typeof conditions === 'number') {
+        matches.push("id=" + conditions);
+      } else if (typeof conditions === 'object') {
+        for (x in conditions) {
+          if (conditions.hasOwnProperty(x)) {
+            if (x.match(/^\d+$/)) {
+              matches.push(conditions[x]);
+            } else {
+              matches.push(x + '=' + conditions[x]);
+            }
+          }
+        }
+      }
+
+      if (matches.length > 0) {
+        matches = " WHERE " + matches.join(' AND ');
+      }
+
+      query = query.replace('#c#', matches);
 
       execute(query, null, data, error);
     }
