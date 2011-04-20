@@ -11,10 +11,10 @@ function SQLite(cfg) {
 
 
   // Default Handlers
-  function nullDataHandler(transaction, results) { }
+  function nullDataHandler(results) { }
 
-  function errorHandler(transaction, error) {
-    log('Oops.  Error was ' + error.message + ' (Code ' + error.code + ')');
+  function errorHandler(error) {
+    log('Oops. ' + error.message + ' (Code ' + error.code + ')');
   }
 
   var config = cfg || {}, db;
@@ -47,9 +47,17 @@ function SQLite(cfg) {
       return;
     }
 
+    function err(t, error) {
+      eH(error, query);
+    }
+
+    function data(t, result) {
+      dH(result, query);
+    }
+
     db.transaction(
       function (transaction) {
-        transaction.executeSql(query, values, dH, eH);
+        transaction.executeSql(query, values, data, err);
       }
     );
   }
