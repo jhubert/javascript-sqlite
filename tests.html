@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+
+<html lang="en-us">
+<head>
+  <title>Test Suite for sqlite.js</title>
+  <script src="sqlite.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="results"></div>
+<script type="text/javascript" charset="utf-8">
+
+  function pass(results, query) {
+    console.log('pass - ' + query);
+  }
+
+  function fail(error, query) {
+    console.log('fail - ' + error.message + ': ' + query);
+  }
+
+  var db = SQLite({ shortName: 'mydb' + parseInt(Math.random() * 100000), defaultErrorHandler: fail, defaultDataHandler: pass });
+
+  db.createTable('people', 'name TEXT, age INTEGER');
+
+  db.insert('people', { name: 'Jeremy', age: 29 });
+
+  db.update('people', { age: 30 }, { name: 'Jeremy' });
+
+  db.select('people', '*', { age: 30 }, function (results) { var x; for(x=0; x<results.rows.length; x++) { console.log(results.rows.item(x)); } });
+
+  db.destroy('people', { age: 30 });
+</script>
+</body>
+</html>
